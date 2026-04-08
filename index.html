@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#100f1f" />
+  <title>애완동물DM</title>
+  <style>
+    :root{
+      --bg:#0c0b17;--bg2:#17132a;--card:rgba(28,24,48,.72);--card2:rgba(36,31,61,.82);--line:rgba(255,255,255,.09);
+      --text:#f7f5ff;--muted:#b6b1d1;--pink:#ff4fa8;--orange:#ff9d69;--yellow:#ffd86e;--violet:#8b7bff;--aqua:#85f4ff;
+      --success:#9bffcb;--danger:#ff7f9c;--shadow:0 22px 64px rgba(0,0,0,.38);--radius:28px;
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;min-height:100%}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 0% 0%, rgba(255,255,255,.2), transparent 18%),
+        radial-gradient(circle at 100% 0%, rgba(139,123,255,.18), transparent 26%),
+        radial-gradient(circle at 50% 100%, rgba(255,79,168,.16), transparent 28%),
+        linear-gradient(180deg, #1a1830 0%, #111022 18%, #0a0914 100%);
+      padding:max(10px, env(safe-area-inset-top)) 10px calc(16px + env(safe-area-inset-bottom));
+      display:flex;justify-content:center;overflow-x:hidden;
+    }
+    .sparkles{position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:0;}
+    .sparkle{position:absolute; width:8px; height:8px; opacity:.65; background:radial-gradient(circle, rgba(255,255,255,.95), rgba(255,255,255,0) 70%); animation:floatSpark var(--dur) linear infinite; filter:drop-shadow(0 0 12px rgba(255,255,255,.35));}
+    .sparkle::before,.sparkle::after{content:""; position:absolute; inset:0; margin:auto; background:rgba(255,255,255,.95); border-radius:999px;}
+    .sparkle::before{width:1px;height:100%;left:50%;transform:translateX(-50%)}
+    .sparkle::after{height:1px;width:100%;top:50%;transform:translateY(-50%)}
+    @keyframes floatSpark{0%{transform:translate3d(0,0,0) scale(.6) rotate(0deg);opacity:0}10%{opacity:.7}50%{opacity:.95}100%{transform:translate3d(var(--tx), -110vh, 0) scale(1.15) rotate(180deg);opacity:0}}
+
+    .app{width:min(100%, 880px); position:relative; z-index:1;}
+    .shell{
+      border-radius:38px; overflow:hidden; border:1px solid rgba(255,255,255,.11);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02)),
+        linear-gradient(180deg, rgba(28,24,48,.9), rgba(12,10,22,.92));
+      box-shadow:var(--shadow);backdrop-filter:blur(16px);
+    }
+    .topbar{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; border-bottom:1px solid var(--line); background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));}
+    .icon-btn{width:48px;height:48px;border-radius:999px;display:grid;place-items:center;flex:0 0 auto;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);box-shadow:inset 0 1px 0 rgba(255,255,255,.1);color:#fff;font-size:20px}
+    .brand{flex:1; min-width:0; text-align:center}
+    .brand .mini{display:block;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#d8d2ef;font-weight:900;opacity:.88}
+    .brand h1{margin:4px 0 0;font-size:clamp(28px, 5vw, 40px);line-height:1;font-weight:1000;letter-spacing:-.04em;background:linear-gradient(90deg, #ffb594, #ff6cb3 45%, #ff59a5 75%, #cc7dff);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .hero{padding:18px 18px 10px;background:linear-gradient(180deg, rgba(91,59,122,.16), rgba(0,0,0,0))}
+    .hero h2{margin:0 0 10px;font-size:clamp(28px,4.7vw,44px);line-height:1.08;letter-spacing:-.05em}
+    .hero h2 strong{color:var(--yellow)}
+    .hero p{margin:0;color:#c9c3df;font-size:15px;line-height:1.7}
+
+    .stories-wrap{padding:12px 14px 6px}
+    .stories{display:flex; gap:14px; overflow:auto; padding:4px 2px 10px; scrollbar-width:none}
+    .stories::-webkit-scrollbar{display:none}
+    .story{flex:0 0 auto; width:92px; border:0; background:transparent; color:#d6d0eb; padding:0; text-align:center; cursor:pointer}
+    .story-card{border-radius:24px;height:132px;padding:14px 8px 10px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));box-shadow:inset 0 1px 0 rgba(255,255,255,.06);overflow:hidden}
+    .story-ring{width:66px;height:66px;margin:0 auto 10px;padding:3px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--pink),var(--violet));box-shadow:0 10px 22px rgba(255,79,168,.22);transition:transform .18s ease, box-shadow .18s ease}
+    .story-ring.active{transform:translateY(-1px) scale(1.03);box-shadow:0 14px 28px rgba(255,216,110,.26)}
+    .story-core{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;background:linear-gradient(180deg,#171529,#0f0d1c);border:2px solid rgba(255,255,255,.08);font-size:30px}
+    .story-label{display:block;font-weight:900;font-size:12px;line-height:1.25}
+    .story-sub{display:block;margin-top:3px;font-size:10px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    .panel{padding:10px 14px 14px}
+    .reel{border-radius:32px;overflow:hidden;border:1px solid var(--line);background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03))}
+    .reel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border-bottom:1px solid var(--line)}
+    .profile{display:flex;align-items:center;gap:12px;min-width:0}
+    .avatar{width:56px;height:56px;border-radius:50%;padding:2px;background:linear-gradient(135deg,var(--orange),var(--pink),var(--violet));flex:0 0 auto}
+    .avatar-inner{width:100%;height:100%;border-radius:50%;background:#110f1f;border:1px solid rgba(255,255,255,.08);display:grid;place-items:center;font-size:28px}
+    .profile-text{min-width:0}
+    .profile-text strong{display:block;font-size:18px;line-height:1.15}
+    .profile-text small{display:block;margin-top:4px;color:var(--muted);line-height:1.35}
+    .live-badge{flex:0 0 auto;padding:9px 13px;border-radius:999px;font-size:12px;font-weight:900;color:#ffe5f1;background:linear-gradient(90deg, rgba(255,79,168,.2), rgba(139,123,255,.18));border:1px solid rgba(255,255,255,.1)}
+    .video-wrap{position:relative;aspect-ratio:9/16;background:#07070e;max-height:76svh}
+    video{width:100%;height:100%;object-fit:cover;display:block;background:#000}
+    .video-wrap::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 20%, rgba(255,255,255,.08), transparent 18%),linear-gradient(180deg, rgba(0,0,0,.32), transparent 24%, transparent 64%, rgba(0,0,0,.5))}
+    .record-glow{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .18s ease;box-shadow:inset 0 0 0 3px rgba(255,95,129,.95), inset 0 0 110px rgba(255,95,129,.16)}
+    .video-wrap.recording .record-glow{opacity:1}
+    .video-overlay{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:14px}
+    .overlay-top,.overlay-bottom{display:flex;justify-content:space-between;gap:12px}
+    .stack{display:flex;flex-direction:column;gap:8px}
+    .pill{align-self:flex-start;padding:8px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.13);background:rgba(11,10,20,.45);backdrop-filter:blur(10px);font-size:12px;font-weight:900;color:#fff}
+    .chip{padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.14);font-size:12px;font-weight:900}
+    .overlay-caption{max-width:72%}
+    .overlay-caption .line1{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+    .overlay-caption p{margin:0;font-size:14px;line-height:1.5;color:rgba(255,255,255,.96);text-shadow:0 2px 10px rgba(0,0,0,.45)}
+    .side-actions{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:auto;text-shadow:0 2px 12px rgba(0,0,0,.5)}
+    .action-stack{display:grid;place-items:center;gap:5px}
+    .nav-icon{width:50px;height:50px;border-radius:999px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.1);font-size:20px}
+    .action-stack small{font-size:11px;font-weight:900;color:#fff}
+    .counter-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 14px;border-top:1px solid var(--line);background:rgba(255,255,255,.03)}
+    .counter-box{border-radius:18px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);padding:10px 12px;text-align:center}
+    .counter-box strong{display:block;font-size:18px;line-height:1.1}
+    .counter-box span{display:block;margin-top:3px;color:var(--muted);font-size:11px;font-weight:800}
+    .control-pad{padding:14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;border-top:1px solid var(--line);background:rgba(255,255,255,.03)}
+    button,select,textarea{font:inherit}
+    button,select{width:100%;border:0;border-radius:20px;padding:15px 16px;font-size:15px;font-weight:900;color:var(--text);background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+    button.primary{color:#311804;background:linear-gradient(180deg,#ffe793,#ffb662);box-shadow:0 14px 28px rgba(255,182,98,.18)}
+    button.recording{color:#fff;background:linear-gradient(180deg,#ff8fa4,#ff5b82);box-shadow:0 14px 30px rgba(255,91,130,.2)}
+    button.ghost{background:linear-gradient(180deg, rgba(139,123,255,.22), rgba(139,123,255,.1))}
+    button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+    select{appearance:none}
+    .full{grid-column:1/-1}
+    .chat-card{margin:0 14px 14px;border-radius:28px;border:1px solid var(--line);overflow:hidden;background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03))}
+    .chat-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;border-bottom:1px solid var(--line)}
+    .chat-head strong{font-size:15px}
+    .chat-head small{color:var(--muted)}
+    .chat-body{padding:16px;display:flex;flex-direction:column;gap:12px}
+    .msg-row{display:flex;gap:10px;align-items:flex-end}
+    .msg-row.me{justify-content:flex-end}
+    .mini-avatar{width:38px;height:38px;border-radius:50%;padding:2px;background:linear-gradient(135deg,var(--orange),var(--pink));flex:0 0 auto}
+    .mini-avatar>div{width:100%;height:100%;border-radius:50%;background:#120f22;display:grid;place-items:center;font-size:18px}
+    .msg{max-width:min(82%, 560px);padding:14px 16px;border-radius:22px;font-size:16px;line-height:1.55;box-shadow:0 8px 22px rgba(0,0,0,.16)}
+    .msg.info{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid rgba(255,255,255,.08)}
+    .msg.pet{background:linear-gradient(180deg, #fff1c8, #ffe0aa);color:#351d09;font-weight:1000;font-size:clamp(18px,4vw,26px)}
+    .status{margin:0 14px 12px;padding:14px 16px;border-radius:22px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);font-size:14px;line-height:1.55}
+    .status.ok{color:#d7ffea}
+    .status.err{color:#ffd4de}
+    .tips{margin:0 14px 14px;padding:14px 16px;border-radius:24px;border:1px solid var(--line);background:linear-gradient(180deg, rgba(139,123,255,.12), rgba(255,255,255,.03))}
+    .tips h3{margin:0 0 8px;font-size:15px}
+    .tips p{margin:0;color:var(--muted);line-height:1.6;font-size:13px}
+    .footer{padding:8px 18px 16px;text-align:center;color:rgba(255,255,255,.58);font-size:12px;line-height:1.6}
+    .bottom-nav{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:13px 14px 16px;border-top:1px solid var(--line);background:rgba(13,12,24,.72)}
+    .bottom-nav .item{display:grid;place-items:center;gap:4px;color:var(--muted);font-size:11px;font-weight:900}
+    .bottom-nav .item strong{font-size:18px;line-height:1}
+    .bottom-nav .item.active{color:#fff}
+    .rec-pulse{width:9px;height:9px;display:inline-block;border-radius:50%;background:#ff6588;margin-right:6px;box-shadow:0 0 0 0 rgba(255,101,136,.72);animation:pulse 1.2s infinite;vertical-align:middle}
+    @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,101,136,.72)}80%{box-shadow:0 0 0 12px rgba(255,101,136,0)}100%{box-shadow:0 0 0 0 rgba(255,101,136,0)}}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(4,4,8,.6);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center;z-index:30;padding:14px}
+    .modal-backdrop.open{display:flex}
+    .modal{width:min(100%, 780px);max-height:90svh;overflow:auto;border-radius:30px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg, rgba(34,29,58,.96), rgba(15,13,25,.98));box-shadow:var(--shadow)}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(21,18,35,.95);backdrop-filter:blur(8px);z-index:1}
+    .modal-head h3{margin:0;font-size:18px}
+    .modal-body{padding:16px 18px 18px}
+    .admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .admin-box{border-radius:22px;padding:14px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+    .admin-box h4{margin:0 0 8px;font-size:15px}
+    .admin-box p{margin:0 0 10px;color:var(--muted);font-size:13px;line-height:1.55}
+    textarea{width:100%;min-height:118px;resize:vertical;border-radius:18px;padding:14px;color:var(--text);background:rgba(7,7,14,.44);border:1px solid rgba(255,255,255,.1)}
+    .small-note{margin-top:8px;color:var(--muted);font-size:12px;line-height:1.5}
+    .list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+    .custom-item{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;padding:10px 12px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+    .custom-item p{margin:0;color:#f5f1ff;font-size:13px;line-height:1.5}
+    .tiny-btn{width:auto;padding:10px 12px;border-radius:14px;font-size:12px;flex:0 0 auto}
+    .count-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.07);color:#fff;font-size:12px;font-weight:900;border:1px solid rgba(255,255,255,.09)}
+    @media (max-width:720px){
+      .counter-bar{grid-template-columns:repeat(2,1fr)}
+      .control-pad{grid-template-columns:1fr}
+      .admin-grid{grid-template-columns:1fr}
+      .overlay-caption{max-width:68%}
+      .video-wrap{aspect-ratio:4/5}
+      .hero h2{font-size:clamp(26px,7vw,38px)}
+    }
+  </style>
+</head>
+<body>
+  <div class="sparkles" id="sparkles" aria-hidden="true"></div>
+  <main class="app">
+    <section class="shell">
+      <header class="topbar">
+        <button class="icon-btn" type="button" aria-label="카메라">📷</button>
+        <div class="brand">
+          <span class="mini">toy pet translator</span>
+          <h1>애완동물DM</h1>
+        </div>
+        <button id="openAdminBtn" class="icon-btn" type="button" aria-label="관리자 모드">⚙️</button>
+      </header>
+
+      <section class="hero">
+        <h2>찍으면 DM이 온다. <strong>귀엽고 웃기게.</strong></h2>
+        <p>카메라를 켜고 짧게 찍은 뒤 종료하면, 선택한 동물이 아래 DM 말풍선으로 랜덤하게 한마디를 보냅니다. 배경 반짝이, 가짜 좋아요/댓글 수, 그리고 직접 문장 추가하는 관리자 모드까지 넣은 장난감 감성 버전입니다.</p>
+      </section>
+
+      <section class="stories-wrap">
+        <div id="stories" class="stories" aria-label="동물 빠른 선택"></div>
+      </section>
+
+      <section class="panel">
+        <div class="reel">
+          <div class="reel-head">
+            <div class="profile">
+              <div class="avatar"><div id="mainAvatar" class="avatar-inner">🐾</div></div>
+              <div class="profile-text">
+                <strong id="selectedAnimalLabel">전체 랜덤</strong>
+                <small id="selectedAnimalSub">오늘 누가 DM을 보낼지 랜덤입니다</small>
+              </div>
+            </div>
+            <div id="liveBadge" class="live-badge">카메라 대기</div>
+          </div>
+
+          <div id="videoWrap" class="video-wrap">
+            <video id="preview" playsinline autoplay muted></video>
+            <div class="video-overlay">
+              <div class="overlay-top">
+                <div class="stack">
+                  <div id="modeBadge" class="pill">🐾 준비 전</div>
+                  <div id="timerBadge" class="pill">00:00</div>
+                </div>
+                <div class="pill">애완동물DM</div>
+              </div>
+              <div class="overlay-bottom">
+                <div class="overlay-caption">
+                  <div class="line1">
+                    <span id="captionAnimalChip" class="chip">전체 랜덤</span>
+                    <span class="chip">인스타 DM 감성</span>
+                  </div>
+                  <p id="overlayHint">카메라를 켜고 짧게 찍어 보세요. 종료 후 아래 DM에 한마디가 도착합니다.</p>
+                </div>
+                <div class="side-actions" aria-hidden="true">
+                  <div class="action-stack">
+                    <div class="nav-icon">❤</div>
+                    <small id="sideLikeCount">3.2K</small>
+                  </div>
+                  <div class="action-stack">
+                    <div class="nav-icon">💬</div>
+                    <small id="sideCommentCount">124</small>
+                  </div>
+                  <div class="action-stack">
+                    <div class="nav-icon">✨</div>
+                    <small id="sideSparkCount">88</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="record-glow"></div>
+          </div>
+
+          <div class="counter-bar">
+            <div class="counter-box"><strong id="likeCount">3,204</strong><span>좋아요</span></div>
+            <div class="counter-box"><strong id="commentCount">124</strong><span>댓글</span></div>
+            <div class="counter-box"><strong id="shareCount">38</strong><span>공유</span></div>
+            <div class="counter-box"><strong id="saveCount">61</strong><span>저장</span></div>
+          </div>
+
+          <div class="control-pad">
+            <button id="startCameraBtn" class="primary">카메라 켜기</button>
+            <button id="recordBtn" disabled>녹화 시작</button>
+            <select id="petType" class="full" aria-label="동물 종류 선택"></select>
+            <button id="shuffleBtn">문장 다시 뽑기</button>
+            <button id="voiceBtn" class="ghost">음성 읽기 켜짐</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="chat-card">
+        <div class="chat-head">
+          <div>
+            <strong>DM 미리보기</strong>
+            <small id="messageMeta">랜덤 DM · --:--</small>
+          </div>
+          <span class="count-pill">✨ <span id="customCountBadge">커스텀 0개</span></span>
+        </div>
+        <div class="chat-body">
+          <div class="msg-row me">
+            <div class="msg info" id="youMsg">전체 랜덤에게 "오늘 기분 어때?"를 보냈습니다.</div>
+          </div>
+          <div class="msg-row">
+            <div class="mini-avatar"><div id="dmAvatar">🐾</div></div>
+            <div class="msg pet" id="resultText">“카메라를 켜고 찍으면 랜덤한 애완동물 DM이 도착합니다.”</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="status" id="statusText">카메라를 켜기 전에도 문장 다시 뽑기는 됩니다. GitHub Pages에 올리면 HTTPS 환경이라 카메라 권한이 더 안정적으로 동작합니다.</div>
+
+      <section class="tips">
+        <h3>관리자 모드 안내</h3>
+        <p>상단 오른쪽 톱니바퀴를 누르면 동물별로 직접 문장을 추가할 수 있습니다. 추가한 문장은 이 기기 브라우저의 저장소에 저장됩니다. 커스텀 문장을 비우거나 개별 삭제하는 것도 가능합니다.</p>
+      </section>
+
+      <footer class="footer">
+        애완동물DM · 만든이 @hosukgun<br />
+        장난감 감성 웹앱이며 결과는 재미 위주입니다.
+      </footer>
+
+      <nav class="bottom-nav" aria-hidden="true">
+        <div class="item active"><strong>🏠</strong><span>홈</span></div>
+        <div class="item"><strong>🎞️</strong><span>릴스</span></div>
+        <div class="item"><strong>➕</strong><span>업로드</span></div>
+        <div class="item"><strong>💌</strong><span>DM</span></div>
+        <div class="item"><strong>👤</strong><span>프로필</span></div>
+      </nav>
+    </section>
+  </main>
+
+  <div id="adminModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+      <div class="modal-head">
+        <h3 id="adminTitle">관리자 모드 · 커스텀 문장 추가</h3>
+        <button id="closeAdminBtn" class="tiny-btn">닫기</button>
+      </div>
+      <div class="modal-body">
+        <div class="admin-grid">
+          <div class="admin-box">
+            <h4>문장 추가</h4>
+            <p>선택한 동물에 새로운 DM 문장을 추가합니다. 한 줄에 하나씩 입력해도 됩니다.</p>
+            <select id="adminPetSelect" aria-label="관리자 동물 선택"></select>
+            <textarea id="adminTextarea" placeholder="예: 오늘은 크레스티드 게코가 벽 타기 각이 아주 좋습니다."></textarea>
+            <div class="small-note">여러 줄을 넣으면 줄마다 한 문장으로 저장합니다.</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+              <button id="addPhraseBtn" class="primary">문장 추가</button>
+              <button id="resetPetBtn">선택 동물 커스텀 비우기</button>
+            </div>
+          </div>
+          <div class="admin-box">
+            <h4>커스텀 문장 목록</h4>
+            <p id="adminListInfo">아직 추가된 문장이 없습니다.</p>
+            <div id="customList" class="list"></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+              <button id="resetAllBtn">전체 커스텀 비우기</button>
+              <button id="seedSampleBtn" class="ghost">샘플 3개 넣기</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const BASE_PETS = {"all": {"label": "전체 랜덤", "emoji": "🐾", "desc": "오늘은 누가 DM 보낼지 랜덤", "group": "랜덤", "phrases": ["오늘 콘텐츠 감성은 내가 책임진다.", "찍었으면 예쁘게 올려 주세요. 각도 중요합니다.", "방금 표정 좋았으니 썸네일로 써도 됩니다.", "귀여움은 우연이 아니라 루틴입니다.", "나는 이미 준비됐고, 카메라만 기다렸어요.", "DM은 왔고, 이제 간식이 답장할 차례입니다.", "오늘도 주인보다 내가 더 화면발 받는 중.", "필터 없이도 충분한 친구가 여기 있습니다."]}, "dog": {"label": "강아지", "emoji": "🐶", "desc": "꼬리 흔들 준비 완료", "group": "친숙한 반려동물", "phrases": ["산책 갈 사람? 저요. 지금이요. 당장요.", "방금 카메라 봤으니 간식 한 개는 맞죠?", "나 오늘도 집에서 제일 바쁜 강아지야.", "주인 얼굴 봤으니 일단 반갑다고 세 바퀴 돕니다.", "공 가져오면 우정도 함께 배달됩니다.", "귀여움은 기본, 흥분은 서비스입니다.", "앉아도 귀엽고 뛰어도 귀엽고 자도 귀여워요.", "내 오늘 일정: 놀기, 간식, 또 놀기."]}, "cat": {"label": "고양이", "emoji": "🐱", "desc": "도도하고 예쁜 냥스타", "group": "친숙한 반려동물", "phrases": ["만져도 되냐고요? 오늘 기분 보고 결정할게요.", "집사는 잘하고 있습니다. 계속 그렇게 하세요.", "내가 쳐다봤다는 건 이미 큰 호감이야.", "지금 안기는 건 안 되고, 숭배는 가능합니다.", "캣타워 위에서 세상을 내려다보는 중.", "나는 잠이 많고 기준은 더 높습니다.", "오늘도 우아하게, 그리고 약간은 귀찮게.", "내 털이 묻었다면 그건 축복입니다."]}, "hamster": {"label": "햄스터", "emoji": "🐹", "desc": "볼주머니에 비밀이 많음", "group": "친숙한 반려동물", "phrases": ["볼주머니는 저장 공간이지 욕심이 아닙니다.", "내가 작다고 귀여움까지 작은 건 아니죠.", "쳇바퀴는 운동이자 예술 퍼포먼스입니다.", "오늘도 해바라기씨 기준으로 판단하겠습니다.", "숨은 이유요? 그냥 취향입니다.", "나는 작지만 하루가 아주 바빠요.", "지금 눈 동그래진 건 흥미 표시입니다.", "작은 손으로 큰 행복을 운영 중."]}, "rabbit": {"label": "토끼", "emoji": "🐰", "desc": "동글한 긴장감과 폭신함", "group": "친숙한 반려동물", "phrases": ["깡충은 이동이고, 귀여움은 잔상입니다.", "당근 제안은 언제나 긍정 검토합니다.", "귀가 큰 건 정보 수집 효율 때문입니다.", "갑자기 뛰는 건 놀라서가 아니라 텐션이 올라서예요.", "나는 폭신하지만 생각보다 민첩합니다.", "오늘도 얌전한 척하면서 구석을 탐험 중.", "당근 냄새 나면 우정도 빨라집니다.", "지금 나를 봤다면 이미 힐링 중."]}, "parrot": {"label": "앵무새", "emoji": "🦜", "desc": "말과 표정이 모두 화려함", "group": "친숙한 반려동물", "phrases": ["예쁜 말도 하고 웃긴 말도 하고 간식도 먹습니다.", "방금 들은 말? 내일 다시 따라 할 예정입니다.", "오늘 콘텐츠는 제가 오디오까지 담당합니다.", "한 번 배운 건 꽤 오래 갑니다. 특히 웃긴 거.", "색감, 발성, 존재감 다 준비됐어요.", "제일 시끄러운 게 아니라 제일 활기찬 겁니다.", "집안의 비밀을 제일 많이 아는 건 아마 저예요.", "날아도 예쁘고 앉아도 예쁩니다."]}, "turtle": {"label": "거북이", "emoji": "🐢", "desc": "느긋하지만 중심 있는 모드", "group": "친숙한 반려동물", "phrases": ["천천히 가도 귀여움은 먼저 도착합니다.", "급한 건 사람들 사정이고 나는 평온합니다.", "껍데기 안팎으로 품격 유지 중.", "느리다고 무시하지 마. 나는 오래 기억돼.", "한 걸음 한 걸음이 다 브이로그야.", "서두르지 않는 건 여유지 게으름이 아닙니다.", "오늘도 조용하게 존재감 발산 중.", "햇빛 잘 들면 기분도 바로 좋아집니다."]}, "hedgehog": {"label": "고슴도치", "emoji": "🦔", "desc": "뾰족하지만 마음은 말랑", "group": "친숙한 반려동물", "phrases": ["겉은 뾰족, 속은 간식 생각뿐.", "가까이 오되 예의는 지켜 주세요.", "저는 방어형 귀여움의 대표 선수입니다.", "동그랗게 말리면 살짝 긴장한 거예요.", "귀엽다고 너무 급하게 오면 가시 의견 나갑니다.", "조심히 예뻐해 주세요. 저는 섬세합니다.", "한 번 마음 열면 꽤 다정합니다.", "오늘도 야무지게 귀엽습니다."]}, "ferret": {"label": "페럿", "emoji": "🦦", "desc": "장난기 폭발 탐험가", "group": "친숙한 반려동물", "phrases": ["지금 숨은 건 마술이 아니라 취미예요.", "집 안의 모든 틈은 제 후보지입니다.", "귀엽고 길고 이상하게 빠릅니다.", "방금 뭐 훔친 거 아니고 잠깐 빌린 거예요.", "탐험은 끝나지 않는다. 간식이 있는 한.", "내 움직임이 보이면 이미 늦었어요.", "침대 밑도 결국 내 세상입니다.", "오늘도 에너지가 벽을 뚫고 나갑니다."]}, "desertscorpion": {"label": "건계전갈", "emoji": "🦂", "desc": "사막 감성의 조용한 카리스마", "group": "특이한 친구들", "phrases": ["나는 조용하지만 존재감은 크게 남깁니다.", "건드리지 않으면 나도 아주 신사적입니다.", "오늘도 사막의 CEO처럼 차분합니다.", "작다고 얕보지 마. 아우라는 이미 풀옵이야.", "내 브이로그는 발소리보다 침묵이 많습니다.", "집게 든 건 위협이 아니라 포즈입니다.", "낮엔 차분, 밤엔 더 차분. 그게 나야.", "나는 말이 적고 분위기가 많습니다."]}, "forestscorpion": {"label": "습계전갈", "emoji": "🦂", "desc": "습도 좋아하는 묵직한 존재감", "group": "특이한 친구들", "phrases": ["습도 맞으면 기분도 같이 올라갑니다.", "나는 어두운 곳에서도 존재감이 선명합니다.", "천천히 움직여도 분위기는 이미 장악했어요.", "은신처는 제 자존심입니다.", "오늘도 묵직하게 무드 담당 중.", "무섭다기보다 너무 멋진 거예요.", "조용한데 자꾸 시선이 가면 그건 나 때문입니다.", "밤 공기랑 잘 어울리는 친구가 바로 저예요."]}, "crayfish": {"label": "가재", "emoji": "🦞", "desc": "집게발 자신감 모드", "group": "특이한 친구들", "phrases": ["양손에 집게가 있으면 자신감도 두 배입니다.", "오늘 기분은 수초 뒤집기 좋은 날.", "가끔 뒤로 가는 건 전략적 후퇴입니다.", "내 은신처는 건드리지 않는 게 좋겠어.", "집게발은 위협이 아니라 개성입니다.", "먹을 거 보이면 성격도 아주 사교적이 됩니다.", "바닥 정리는 내가 하고 분위기는 물이 합니다.", "오늘도 내 영역을 꼼꼼히 체크 중."]}, "shrimp": {"label": "새우", "emoji": "🦐", "desc": "작지만 존재감 있는 수조 스타", "group": "특이한 친구들", "phrases": ["작다고 안 보인다고 생각하면 오산입니다.", "내가 움직이면 물도 귀여워 보입니다.", "나는 작은데 분위기는 꽤 큽니다.", "오늘도 유목 위를 우아하게 순찰합니다.", "투명한 몸, 선명한 존재감. 그게 나야.", "한 알갱이 먹이에도 진심입니다.", "수조의 디테일은 결국 우리가 완성하죠.", "작고 빠르고 야무진 친구입니다."]}, "centipede": {"label": "지네", "emoji": "🪱", "desc": "다리 많은 초고속 존재감", "group": "특이한 친구들", "phrases": ["다리가 많다고 바쁜 건 아니고 원래 빠른 겁니다.", "오늘도 은신처에서 존재감만 흘리고 갑니다.", "내 움직임은 공포가 아니라 스피드의 미학입니다.", "조용히 있는데도 자꾸 눈이 가죠?", "나는 길쭉하고 재빠르고 꽤 인상적입니다.", "지금 놀란 건 나보다 당신일걸요.", "한 칸 이동도 영화처럼 보이는 타입.", "밤이 되면 분위기가 더 살아납니다."]}, "crestedgecko": {"label": "크레스티드 게코", "emoji": "🦎", "desc": "유리벽도 타는 야행성 모델", "group": "특이한 친구들", "phrases": ["벽 타는 건 재능이고, 귀여움은 기본 사양.", "방금 시선 고정? 그건 관심 표현입니다.", "내 눈은 크고 일정은 밤형이야.", "오늘도 유리벽 위에서 모델 워킹 중.", "한 번 붙으면 잘 안 떨어지는 매력이 있어.", "곤충 스낵 협찬 들어오면 촬영 더 가능합니다.", "속눈썹처럼 보이는 그 포인트가 킬링입니다.", "점프는 짧아도 존재감은 길어요."]}, "beardeddragon": {"label": "비어디드래곤", "emoji": "🐉", "desc": "햇볕 쬐는 왕자님 모드", "group": "특이한 친구들", "phrases": ["나는 작아도 드래곤 계열 품격이 있어.", "지금 햇볕 각이 좋아서 기분도 좋습니다.", "턱수염 부풀린 건 스타일링입니다.", "웜밍존이 곧 행복존입니다.", "오늘도 돌 위에서 왕처럼 앉아 있는 중.", "곤충 한 접시와 명예를 원합니다.", "눈빛은 진지한데 사실 꽤 순합니다.", "햇빛만 좋으면 오늘 하루 성공."]}, "snake": {"label": "뱀", "emoji": "🐍", "desc": "매끈하고 차분한 모드", "group": "특이한 친구들", "phrases": ["조용한 게 무서운 게 아니라 우아한 거예요.", "나의 취미는 느리게 감고 오래 관찰하기.", "오늘 컨디션은 따뜻한 돌 100점.", "혀를 낼름한 건 욕이 아니라 체크입니다.", "나는 다리 대신 분위기로 이동해.", "패턴도 멋지고 성격도 의외로 차분합니다.", "쓱 지나가도 인상은 길게 남깁니다.", "오늘도 조용히 완성도 높은 하루."]}, "frog": {"label": "개구리", "emoji": "🐸", "desc": "통통 튀는 습도 선호 모드", "group": "특이한 친구들", "phrases": ["오늘 점프감 아주 좋습니다.", "습도 좋고 기분 좋고 얼굴도 동글해요.", "가끔 멍한 표정은 철학 중인 겁니다.", "방금 풀쩍 뛴 건 감정 표현이에요.", "내가 작아도 귀여움 반경은 넓어요.", "물가 근처면 나 오늘 컨디션 만렙.", "동글동글한 표정으로 세상을 본다.", "오늘도 촉촉하게 귀엽습니다."]}, "tarantula": {"label": "타란툴라", "emoji": "🕷️", "desc": "묵직한 무드의 조용한 스타", "group": "특이한 친구들", "phrases": ["나는 말이 없지만 팬은 많습니다.", "지금 천천히 걷는 건 서스펜스 연출이야.", "털은 포근함이 아니라 존재감입니다.", "은신처 안이 곧 내 VIP 라운지예요.", "건드리지 않으면 꽤 평화로운 친구입니다.", "오늘도 한 발 한 발 영화처럼 등장합니다.", "정적인데 화면 장악력은 세죠.", "나의 느림은 연출입니다."]}, "stagbeetle": {"label": "사슴벌레", "emoji": "🪲", "desc": "집게 멋이 살아있는 곤충 스타", "group": "곤충 친구들", "phrases": ["큰 턱은 자랑이고 오늘도 컨디션은 좋습니다.", "나무 위가 내 런웨이입니다.", "멋은 조용히 보여주는 타입이에요.", "지금 포즈 좋으니 바로 찍으세요.", "나는 곤충계의 조용한 패셔니스타.", "우직하게 매달려도 화면은 잘 받습니다.", "오늘도 광택이 아주 괜찮네요.", "턱은 크고 성격은 의외로 차분합니다."]}, "rhinobeetle": {"label": "장수풍뎅이", "emoji": "🪲", "desc": "당당한 뿔과 묵직한 매력", "group": "곤충 친구들", "phrases": ["뿔은 장식이 아니라 자부심입니다.", "묵직하게 걷는 것도 나름의 멋이죠.", "젤리 보이면 텐션이 바로 올라갑니다.", "오늘도 힘캐 느낌으로 귀엽습니다.", "나는 작지만 분위기는 꽤 웅장해요.", "광택 나는 등껍질은 기본 옵션입니다.", "한 번 올라타면 쉽게 안 내려옵니다.", "느린 듯 강한 스타일, 그게 바로 나."]}, "mantis": {"label": "사마귀", "emoji": "🦗", "desc": "기도 자세의 집중 장인", "group": "곤충 친구들", "phrases": ["기도하는 게 아니라 집중 중입니다.", "고개 갸웃한 건 관심 있다는 뜻이에요.", "오늘도 사냥꾼 미학과 귀여움을 동시에 운영합니다.", "앞발 모은 폼이 제 시그니처죠.", "정지한 듯 보여도 늘 계산 중입니다.", "자세 하나로 분위기를 바꾸는 타입.", "지금 눈 마주쳤다면 이미 화면 장악 끝.", "차분하고 또렷하게 존재감 남기는 중."]}, "goldfish": {"label": "금붕어", "emoji": "🐠", "desc": "둥실둥실 수조 감성 모드", "group": "담수어", "phrases": ["물결만 봐도 우아함이 느껴지죠?", "먹이 시간엔 누구보다 빠릅니다.", "오늘도 지느러미에 모든 감정을 담았어요.", "수조 안에서도 스타성은 숨길 수 없지.", "둥실둥실 떠다녀도 존재감은 확실합니다.", "한 바퀴 돌았다고 감성이 사라지는 건 아니야.", "오늘도 수면 아래에서 화보 찍는 중.", "작은 수조도 내겐 무대입니다."]}, "betta": {"label": "베타", "emoji": "🐟", "desc": "컬러감 강한 수조 패션왕", "group": "담수어", "phrases": ["지느러미 펼치면 이건 거의 런웨이입니다.", "거울은 줄이고 칭찬은 늘려 주세요.", "내 색감은 필터 없이도 충분합니다.", "작은 수조? 아니, 개인 무대입니다.", "오늘도 우아하게 하지만 약간은 예민하게.", "나를 비추면 물도 화보가 됩니다.", "컬러는 강하고 표정은 더 강합니다.", "오늘의 패션 포인트는 지느러미."]}, "guppy": {"label": "구피", "emoji": "🐠", "desc": "통통 튀는 군무형 모드", "group": "담수어", "phrases": ["우리는 작지만 팀워크는 화려합니다.", "한 마리로 보면 귀엽고 떼로 보면 더 귀여워요.", "방금 방향 전환? 완벽한 군무였어요.", "오늘도 물속에서 파티 분위기 유지 중.", "내 꼬리는 작아도 스타일은 커요.", "보글보글한 수조에서 사는 아이돌 느낌이죠.", "빠르게 움직여도 사진빨은 좋아요.", "작고 반짝이고 엄청 바쁩니다."]}, "koi": {"label": "코이", "emoji": "🐟", "desc": "연못 귀족 모드", "group": "담수어", "phrases": ["나는 연못의 품격을 담당합니다.", "천천히 헤엄쳐도 분위기는 압도적이죠.", "먹이 주는 사람은 바로 기억합니다.", "오늘도 수면 아래서 우아함 갱신 중.", "색이 예쁜 건 우연이 아니라 혈통의 힘.", "연못 위 햇빛까지 내 소품입니다.", "느린 듯 고급스러운 하루 진행 중.", "오늘도 물결이 나를 따라옵니다."]}, "axolotl": {"label": "아홀로틀", "emoji": "🪸", "desc": "멍한 듯 귀여운 수생 마스코트", "group": "담수어", "phrases": ["입꼬리가 올라간 건 기본 얼굴이에요.", "오늘도 가만히 있으면서 귀여움 갱신 중.", "내 아가미는 장식이 아니라 포인트입니다.", "멍해 보여도 다 보고 있어요. 아마도.", "물속에서 가장 순한 미소 담당입니다.", "사진보다 실제로 보면 더 말랑한 분위기예요.", "가만있어도 콘텐츠가 됩니다.", "오늘도 은은하게 귀엽습니다."]}, "pleco": {"label": "플레코", "emoji": "🐟", "desc": "유리벽 청소 장인의 묵직함", "group": "담수어", "phrases": ["유리 청소는 취미가 아니라 사명입니다.", "조용히 붙어 있어도 존재감은 큽니다.", "오늘도 야무지게 수조 벽을 관리 중.", "무표정처럼 보여도 꽤 성실한 편입니다.", "나는 묵직하고 실속 있는 친구예요.", "밤에 더 바빠지는 스타일입니다.", "한 자리에서 오래 있어도 할 일은 많아요.", "유리벽과 나는 꽤 잘 맞습니다."]}, "clownfish": {"label": "클라운피시", "emoji": "🐠", "desc": "해수어 대표 귀요미", "group": "해수어", "phrases": ["니모라고 불러도 반은 맞습니다.", "말미잘 옆이 제 최애 포토존이에요.", "작아도 바다 감성은 꽉 차 있습니다.", "오늘도 오렌지 화이트 조합이 완벽합니다.", "바다 쪽 귀여움 담당은 접니다.", "헤엄칠 때마다 기분이 컬러풀해져요.", "화면에 잡히면 일단 이깁니다.", "작고 빠르고 바다 감성 만점."]}, "bluetang": {"label": "블루탱", "emoji": "🐟", "desc": "시원한 블루 컬러의 해수어", "group": "해수어", "phrases": ["오늘의 포인트 컬러는 당연히 블루입니다.", "시원한 색감으로 수조 분위기 정리 완료.", "바다에서 온 패션 피스 같은 존재죠.", "헤엄칠수록 색감이 더 살아납니다.", "나를 보면 물도 더 맑아 보입니다.", "우아하게 돌고 또 우아하게 돕니다.", "블루는 차갑고 귀여움은 따뜻해요.", "내 컬러감은 이미 완성형."]}, "mandarin": {"label": "만다린피시", "emoji": "🐟", "desc": "무늬가 예쁜 해수어 아트피스", "group": "해수어", "phrases": ["패턴이 예쁜 건 노력보다 타고난 재능입니다.", "나를 보면 물속도 예술 작품 같죠.", "오늘도 알록달록하게 존재감 발산 중.", "무늬만 보면 이미 화보 한 장입니다.", "가만히 있어도 색감이 일을 합니다.", "바다에서 온 작은 아트피스예요.", "화려하지만 조용하게 예쁜 타입.", "오늘도 내 패턴이 수조를 살립니다."]}, "goby": {"label": "고비", "emoji": "🐟", "desc": "작고 야무진 해수어 탐험가", "group": "해수어", "phrases": ["작지만 내 자리는 정확히 챙깁니다.", "바닥 근처도 충분히 멋있을 수 있어요.", "오늘도 틈새 탐험 중입니다.", "작은 친구일수록 매력이 촘촘하죠.", "조용히 움직이지만 귀여움은 분명합니다.", "틈이 있으면 일단 확인합니다.", "바다의 소소한 귀여움 담당입니다.", "작고 알찬 하루를 살고 있어요."]}};
+    const STORY_ORDER = ["all", "dog", "cat", "desertscorpion", "forestscorpion", "centipede", "crestedgecko", "crayfish", "shrimp", "hamster", "rabbit", "parrot", "turtle", "hedgehog", "ferret", "stagbeetle", "rhinobeetle", "mantis", "snake", "frog", "tarantula", "beardeddragon", "goldfish", "betta", "guppy", "koi", "axolotl", "pleco", "clownfish", "bluetang", "mandarin", "goby"];
+    const GROUP_ORDER = ["친숙한 반려동물", "특이한 친구들", "곤충 친구들", "담수어", "해수어"];
+    const STORAGE_KEY = "petdm_custom_phrases_v3";
+
+    const startCameraBtn = document.getElementById("startCameraBtn");
+    const recordBtn = document.getElementById("recordBtn");
+    const shuffleBtn = document.getElementById("shuffleBtn");
+    const voiceBtn = document.getElementById("voiceBtn");
+    const petType = document.getElementById("petType");
+    const preview = document.getElementById("preview");
+    const resultText = document.getElementById("resultText");
+    const statusText = document.getElementById("statusText");
+    const timerBadge = document.getElementById("timerBadge");
+    const modeBadge = document.getElementById("modeBadge");
+    const captionAnimalChip = document.getElementById("captionAnimalChip");
+    const overlayHint = document.getElementById("overlayHint");
+    const videoWrap = document.getElementById("videoWrap");
+    const liveBadge = document.getElementById("liveBadge");
+    const selectedAnimalLabel = document.getElementById("selectedAnimalLabel");
+    const selectedAnimalSub = document.getElementById("selectedAnimalSub");
+    const mainAvatar = document.getElementById("mainAvatar");
+    const dmAvatar = document.getElementById("dmAvatar");
+    const messageMeta = document.getElementById("messageMeta");
+    const youMsg = document.getElementById("youMsg");
+    const stories = document.getElementById("stories");
+    const customCountBadge = document.getElementById("customCountBadge");
+    const likeCount = document.getElementById("likeCount");
+    const commentCount = document.getElementById("commentCount");
+    const shareCount = document.getElementById("shareCount");
+    const saveCount = document.getElementById("saveCount");
+    const sideLikeCount = document.getElementById("sideLikeCount");
+    const sideCommentCount = document.getElementById("sideCommentCount");
+    const sideSparkCount = document.getElementById("sideSparkCount");
+    const sparkles = document.getElementById("sparkles");
+
+    const adminModal = document.getElementById("adminModal");
+    const openAdminBtn = document.getElementById("openAdminBtn");
+    const closeAdminBtn = document.getElementById("closeAdminBtn");
+    const adminPetSelect = document.getElementById("adminPetSelect");
+    const adminTextarea = document.getElementById("adminTextarea");
+    const addPhraseBtn = document.getElementById("addPhraseBtn");
+    const resetPetBtn = document.getElementById("resetPetBtn");
+    const resetAllBtn = document.getElementById("resetAllBtn");
+    const seedSampleBtn = document.getElementById("seedSampleBtn");
+    const customList = document.getElementById("customList");
+    const adminListInfo = document.getElementById("adminListInfo");
+
+    let stream = null;
+    let isRecording = false;
+    let timerId = null;
+    let recordStart = 0;
+    let voiceEnabled = true;
+    let lastPhrase = "";
+    let lastDeliveredPetKey = "all";
+    let customPhrases = loadCustom();
+
+    function loadCustom(){
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const parsed = raw ? JSON.parse(raw) : {};
+        return typeof parsed === "object" && parsed ? parsed : {};
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function saveCustom(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(customPhrases));
+      updateCustomBadge();
+      renderCustomList();
+    }
+
+    function totalCustomCount(){
+      return Object.values(customPhrases).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
+    }
+
+    function updateCustomBadge(){
+      customCountBadge.textContent = `커스텀 ${totalCustomCount()}개`;
+    }
+
+    function getPet(key){
+      return BASE_PETS[key] || BASE_PETS.all;
+    }
+
+    function currentKey(){
+      return BASE_PETS[petType.value] ? petType.value : "all";
+    }
+
+    function getPhrasePool(key){
+      const base = [...(getPet(key).phrases || [])];
+      const custom = Array.isArray(customPhrases[key]) ? customPhrases[key] : [];
+      return [...base, ...custom];
+    }
+
+    function pickRandom(list){
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function getRandomPetKey(){
+      const keys = Object.keys(BASE_PETS).filter(k => k !== "all");
+      return pickRandom(keys);
+    }
+
+    function compactNumber(num){
+      if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
+      if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, "") + "K";
+      return String(num);
+    }
+
+    function formatComma(num){
+      return num.toLocaleString("ko-KR");
+    }
+
+    function computeCounters(key, phrase){
+      const seed = [...(key + "|" + phrase)].reduce((a, c) => a + c.charCodeAt(0), 0);
+      const likes = 1200 + (seed * 37) % 8200;
+      const comments = 24 + (seed * 13) % 680;
+      const shares = 7 + (seed * 11) % 240;
+      const saves = 18 + (seed * 17) % 520;
+      likeCount.textContent = formatComma(likes);
+      commentCount.textContent = formatComma(comments);
+      shareCount.textContent = formatComma(shares);
+      saveCount.textContent = formatComma(saves);
+      sideLikeCount.textContent = compactNumber(likes);
+      sideCommentCount.textContent = compactNumber(comments);
+      sideSparkCount.textContent = compactNumber(saves + 30);
+    }
+
+    function makePhrase(){
+      const selected = currentKey();
+      if(selected === "all"){
+        const randomKey = getRandomPetKey();
+        return { petKey: randomKey, text: pickRandom(getPhrasePool(randomKey)) };
+      }
+      return { petKey: selected, text: pickRandom(getPhrasePool(selected)) };
+    }
+
+    function speak(text){
+      if(!voiceEnabled || !("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = "ko-KR";
+      utter.rate = 1;
+      utter.pitch = 1.06;
+      window.speechSynthesis.speak(utter);
+    }
+
+    function setStatus(text, type="normal"){
+      statusText.textContent = text;
+      statusText.className = "status";
+      if(type === "ok") statusText.classList.add("ok");
+      if(type === "err") statusText.classList.add("err");
+    }
+
+    function formatTime(ms){
+      const total = Math.floor(ms / 1000);
+      const mm = String(Math.floor(total / 60)).padStart(2, "0");
+      const ss = String(total % 60).padStart(2, "0");
+      return `${mm}:${ss}`;
+    }
+
+    function startTimer(){
+      recordStart = Date.now();
+      timerBadge.textContent = "00:00";
+      timerId = setInterval(() => {
+        timerBadge.textContent = formatTime(Date.now() - recordStart);
+      }, 200);
+    }
+
+    function stopTimer(){
+      clearInterval(timerId);
+      timerId = null;
+      timerBadge.textContent = "00:00";
+    }
+
+    function buildSelectOptions(selectEl){
+      const prev = selectEl.value || "all";
+      selectEl.innerHTML = "";
+      const optAll = document.createElement("option");
+      optAll.value = "all";
+      optAll.textContent = "전체 랜덤";
+      selectEl.appendChild(optAll);
+      GROUP_ORDER.forEach(group => {
+        const og = document.createElement("optgroup");
+        og.label = group;
+        STORY_ORDER.forEach(key => {
+          if(key === "all") return;
+          const pet = getPet(key);
+          if(pet.group !== group) return;
+          const opt = document.createElement("option");
+          opt.value = key;
+          opt.textContent = pet.label;
+          og.appendChild(opt);
+        });
+        if(og.children.length) selectEl.appendChild(og);
+      });
+      selectEl.value = BASE_PETS[prev] ? prev : "all";
+    }
+
+    function renderStories(){
+      stories.innerHTML = "";
+      STORY_ORDER.forEach(key => {
+        const pet = getPet(key);
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "story";
+        item.dataset.key = key;
+        item.innerHTML = `
+          <div class="story-card">
+            <div class="story-ring ${currentKey() === key ? "active" : ""}">
+              <div class="story-core">${pet.emoji}</div>
+            </div>
+            <span class="story-label">${pet.label}</span>
+            <span class="story-sub">${key === "all" ? "랜덤" : pet.group}</span>
+          </div>
+        `;
+        item.addEventListener("click", () => {
+          petType.value = key;
+          updatePetUI(true);
+        });
+        stories.appendChild(item);
+      });
+    }
+
+    function updatePetUI(fromUser=false){
+      const key = currentKey();
+      const pet = getPet(key);
+      selectedAnimalLabel.textContent = pet.label;
+      selectedAnimalSub.textContent = pet.desc;
+      captionAnimalChip.textContent = pet.label;
+      mainAvatar.textContent = pet.emoji;
+      dmAvatar.textContent = lastDeliveredPetKey === "all" ? pet.emoji : getPet(lastDeliveredPetKey).emoji;
+      modeBadge.textContent = `${pet.emoji} ${stream ? "촬영 준비" : "준비 전"}`;
+      overlayHint.textContent = key === "all"
+        ? "랜덤한 애완동물이 아래 DM으로 한마디를 보냅니다."
+        : `${pet.label} 느낌으로 랜덤 DM을 보냅니다. 짧게 찍고 종료해 보세요.`;
+      youMsg.textContent = `${pet.label}에게 "오늘 기분 어때?"를 보냈습니다.`;
+      renderStories();
+      if(fromUser) setStatus(`${pet.label} 모드로 바뀌었습니다.`, "ok");
+    }
+
+    async function startCamera(){
+      if(!navigator.mediaDevices?.getUserMedia){
+        setStatus("이 브라우저는 카메라 접근을 지원하지 않습니다.", "err");
+        return;
+      }
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: "environment" },
+            width: { ideal: 1080 },
+            height: { ideal: 1920 }
+          },
+          audio: false
+        });
+        preview.srcObject = stream;
+        startCameraBtn.disabled = true;
+        recordBtn.disabled = false;
+        liveBadge.textContent = "카메라 연결됨";
+        modeBadge.textContent = `${getPet(currentKey()).emoji} 촬영 준비`;
+        setStatus("카메라가 켜졌습니다. 녹화를 시작해 보세요.", "ok");
+      } catch(err) {
+        console.error(err);
+        setStatus("카메라 권한을 허용해 주세요. GitHub Pages 주소에서 열면 더 안정적입니다.", "err");
+      }
+    }
+
+    function deliverPhrase(source="녹화"){
+      const next = makePhrase();
+      lastPhrase = next.text;
+      lastDeliveredPetKey = next.petKey;
+      const pet = getPet(next.petKey);
+      dmAvatar.textContent = pet.emoji;
+      resultText.textContent = `“${next.text}”`;
+      messageMeta.textContent = `${pet.label} DM · ${new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}`;
+      computeCounters(next.petKey, next.text);
+      speak(next.text);
+      setStatus(`${source}이(가) 끝났습니다. 아래 DM에 랜덤 문장이 도착했습니다.`, "ok");
+    }
+
+    function startRecording(){
+      if(!stream){
+        setStatus("먼저 카메라를 켜 주세요.", "err");
+        return;
+      }
+      isRecording = true;
+      videoWrap.classList.add("recording");
+      recordBtn.textContent = "녹화 종료";
+      recordBtn.classList.add("recording");
+      liveBadge.innerHTML = '<span class="rec-pulse"></span>REC';
+      modeBadge.innerHTML = `<span class="rec-pulse"></span>${getPet(currentKey()).label} 녹화 중`;
+      setStatus("녹화 중입니다. 원하는 순간에 종료를 눌러 주세요.", "ok");
+      startTimer();
+    }
+
+    function stopRecording(){
+      isRecording = false;
+      videoWrap.classList.remove("recording");
+      recordBtn.textContent = "녹화 시작";
+      recordBtn.classList.remove("recording");
+      liveBadge.textContent = stream ? "카메라 연결됨" : "카메라 대기";
+      modeBadge.textContent = `${getPet(currentKey()).emoji} ${stream ? "촬영 준비" : "준비 전"}`;
+      stopTimer();
+      deliverPhrase("녹화");
+    }
+
+    function createSparkles(){
+      sparkles.innerHTML = "";
+      for(let i=0;i<26;i++) {
+        const s = document.createElement("div");
+        s.className = "sparkle";
+        const left = Math.random() * 100;
+        const size = 4 + Math.random() * 8;
+        s.style.left = left + "vw";
+        s.style.bottom = (-10 - Math.random()*35) + "vh";
+        s.style.setProperty("--tx", `${(-20 + Math.random()*40).toFixed(2)}vw`);
+        s.style.setProperty("--dur", `${(10 + Math.random()*12).toFixed(2)}s`);
+        s.style.width = size + "px";
+        s.style.height = size + "px";
+        s.style.animationDelay = (-Math.random()*16).toFixed(2) + "s";
+        sparkles.appendChild(s);
+      }
+    }
+
+    function renderCustomList(){
+      const key = adminPetSelect.value || "all";
+      const pet = getPet(key);
+      const items = Array.isArray(customPhrases[key]) ? customPhrases[key] : [];
+      adminListInfo.textContent = `${pet.label} 커스텀 문장 ${items.length}개`;
+      customList.innerHTML = "";
+      if(!items.length){
+        const empty = document.createElement("div");
+        empty.className = "custom-item";
+        empty.innerHTML = `<p>아직 이 동물에는 커스텀 문장이 없습니다.</p>`;
+        customList.appendChild(empty);
+        return;
+      }
+      items.forEach((phrase, idx) => {
+        const row = document.createElement("div");
+        row.className = "custom-item";
+        row.innerHTML = `
+          <p>${phrase}</p>
+          <button class="tiny-btn" data-idx="${idx}">삭제</button>
+        `;
+        row.querySelector("button").addEventListener("click", () => {
+          customPhrases[key].splice(idx, 1);
+          if(!customPhrases[key].length) delete customPhrases[key];
+          saveCustom();
+          updatePetUI(false);
+        });
+        customList.appendChild(row);
+      });
+    }
+
+    function openAdmin(){
+      adminModal.classList.add("open");
+      adminModal.setAttribute("aria-hidden","false");
+      renderCustomList();
+    }
+
+    function closeAdmin(){
+      adminModal.classList.remove("open");
+      adminModal.setAttribute("aria-hidden","true");
+    }
+
+    function addPhrasesFromTextarea(){
+      const key = adminPetSelect.value || "all";
+      const lines = adminTextarea.value.split(/\n+/).map(v => v.trim()).filter(Boolean);
+      if(!lines.length){
+        setStatus("추가할 문장을 입력해 주세요.", "err");
+        return;
+      }
+      if(!customPhrases[key]) customPhrases[key] = [];
+      customPhrases[key].push(...lines);
+      adminTextarea.value = "";
+      saveCustom();
+      updatePetUI(false);
+      setStatus(`${getPet(key).label}에 문장 ${lines.length}개를 추가했습니다.`, "ok");
+    }
+
+    function resetSelectedPetCustom(){
+      const key = adminPetSelect.value || "all";
+      delete customPhrases[key];
+      saveCustom();
+      updatePetUI(false);
+      setStatus(`${getPet(key).label} 커스텀 문장을 비웠습니다.`, "ok");
+    }
+
+    function seedSamples(){
+      const key = adminPetSelect.value || "all";
+      const pet = getPet(key);
+      const samples = [
+        `${pet.label} 오늘 화면발 100점입니다.`,
+        `간식 협찬 들어오면 ${pet.label}도 더 열심히 찍겠습니다.`,
+        `${pet.label} 지금 표정은 "좋아요 눌러 주세요" 입니다.`
+      ];
+      if(!customPhrases[key]) customPhrases[key] = [];
+      customPhrases[key].push(...samples);
+      saveCustom();
+      updatePetUI(false);
+      setStatus(`${pet.label} 샘플 문장 3개를 추가했습니다.`, "ok");
+    }
+
+    function resetAllCustom(){
+      customPhrases = {};
+      saveCustom();
+      updatePetUI(false);
+      setStatus("전체 커스텀 문장을 모두 비웠습니다.", "ok");
+    }
+
+    startCameraBtn.addEventListener("click", startCamera);
+    recordBtn.addEventListener("click", () => {
+      if(!isRecording) startRecording();
+      else stopRecording();
+    });
+    shuffleBtn.addEventListener("click", () => deliverPhrase("문장 다시 뽑기"));
+    voiceBtn.addEventListener("click", () => {
+      voiceEnabled = !voiceEnabled;
+      voiceBtn.textContent = voiceEnabled ? "음성 읽기 켜짐" : "음성 읽기 꺼짐";
+      if(!voiceEnabled && "speechSynthesis" in window) window.speechSynthesis.cancel();
+      if(voiceEnabled && lastPhrase) speak(lastPhrase);
+      setStatus(voiceEnabled ? "음성 읽기가 켜졌습니다." : "음성 읽기가 꺼졌습니다.", "ok");
+    });
+    petType.addEventListener("change", () => updatePetUI(true));
+    openAdminBtn.addEventListener("click", openAdmin);
+    closeAdminBtn.addEventListener("click", closeAdmin);
+    adminModal.addEventListener("click", (e) => { if(e.target === adminModal) closeAdmin(); });
+    addPhraseBtn.addEventListener("click", addPhrasesFromTextarea);
+    resetPetBtn.addEventListener("click", resetSelectedPetCustom);
+    resetAllBtn.addEventListener("click", resetAllCustom);
+    seedSampleBtn.addEventListener("click", seedSamples);
+    adminPetSelect.addEventListener("change", renderCustomList);
+    window.addEventListener("keydown", (e) => { if(e.key === "Escape") closeAdmin(); });
+
+    createSparkles();
+    buildSelectOptions(petType);
+    buildSelectOptions(adminPetSelect);
+    updateCustomBadge();
+    renderStories();
+    updatePetUI(false);
+    renderCustomList();
+    deliverPhrase("첫 랜덤 DM");
+  </script>
+</body>
+</html>
