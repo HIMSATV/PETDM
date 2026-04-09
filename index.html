@@ -1,0 +1,830 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#121224" />
+<title>애완동물DM 꾸밈 사진판</title>
+<style>
+:root {
+  --bg1:#121224;
+  --bg2:#0b0c16;
+  --line:rgba(255,255,255,.10);
+  --text:#f6f7ff;
+  --muted:#bcc3dd;
+  --pink:#ff5ca8;
+  --orange:#ffb86d;
+  --violet:#8a7dff;
+  --yellow:#ffd96a;
+  --shadow:0 20px 60px rgba(0,0,0,.35);
+}
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body {
+  margin:0; padding:0; width:100%; min-height:100%;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(255,92,168,.18), transparent 24%),
+    radial-gradient(circle at 100% 10%, rgba(138,125,255,.17), transparent 22%),
+    radial-gradient(circle at 50% 100%, rgba(255,217,106,.08), transparent 24%),
+    linear-gradient(180deg, var(--bg1), var(--bg2));
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+  overflow-x:hidden;
+}
+body {
+  padding:max(10px, env(safe-area-inset-top)) 10px calc(20px + env(safe-area-inset-bottom));
+  display:flex; justify-content:center;
+}
+body::before, body::after {
+  content:""; position:fixed; width:230px; height:230px; border-radius:50%;
+  filter:blur(70px); opacity:.16; pointer-events:none;
+}
+body::before { left:-60px; top:6%; background:#ff5ca8; }
+body::after { right:-50px; bottom:10%; background:#7a82ff; }
+.app {
+  width:min(100%, 860px);
+  border:1px solid var(--line);
+  border-radius:34px;
+  overflow:hidden;
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  backdrop-filter:blur(18px);
+  box-shadow:var(--shadow);
+}
+.topbar {
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:14px 16px; border-bottom:1px solid var(--line);
+  background:rgba(13,14,24,.74);
+}
+.icon-btn {
+  width:52px; height:52px; border-radius:50%;
+  display:grid; place-items:center; flex:0 0 auto;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.06);
+  font-size:24px;
+}
+.brand { flex:1; min-width:0; text-align:center; }
+.brand .mini {
+  display:block; color:var(--muted); font-size:11px; letter-spacing:.18em;
+  text-transform:uppercase; font-weight:800; margin-bottom:4px;
+}
+.brand h1 {
+  margin:0; line-height:1; font-size:clamp(28px, 6vw, 42px); font-weight:900;
+  letter-spacing:-.04em;
+  background:linear-gradient(90deg, var(--orange), var(--pink), #b38cff);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.hero { padding:18px 18px 10px; text-align:center; }
+.hero h2 {
+  margin:0; font-size:clamp(26px, 6.4vw, 44px); line-height:1.08; letter-spacing:-.04em;
+}
+.hero strong { color:var(--yellow); }
+.hero p {
+  margin:10px auto 0; max-width:660px; color:var(--muted); font-size:15px; line-height:1.55;
+}
+.stories-wrap { padding:8px 12px 16px; }
+.stories {
+  display:flex; gap:12px; overflow-x:auto; overflow-y:hidden; padding:8px 2px 4px;
+  scrollbar-width:none;
+}
+.stories::-webkit-scrollbar { display:none; }
+.story {
+  appearance:none; border:0; background:transparent; padding:0; margin:0;
+  color:var(--text); width:112px; flex:0 0 auto; cursor:pointer;
+}
+.story-card {
+  width:112px; min-height:146px; border-radius:28px; overflow:hidden;
+  padding:14px 10px 12px; border:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(255,255,255,.065), rgba(255,255,255,.03));
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+}
+.story-ring {
+  width:70px; height:70px; margin:0 auto 10px; padding:3px; border-radius:50%;
+  background:linear-gradient(135deg, var(--yellow), var(--pink), #7d82ff);
+  box-shadow:0 10px 24px rgba(255,92,168,.18); transition:transform .16s ease;
+}
+.story-ring.active { transform:translateY(-1px) scale(1.03); }
+.story-core {
+  width:100%; height:100%; border-radius:50%; display:grid; place-items:center;
+  background:linear-gradient(180deg, #18192e, #10111f);
+  border:2px solid rgba(255,255,255,.08); font-size:30px;
+}
+.story-label, .story-sub { width:100%; text-align:center; word-break:keep-all; }
+.story-label { font-size:12px; font-weight:900; line-height:1.2; }
+.story-sub { font-size:10px; color:var(--muted); line-height:1.25; margin-top:5px; }
+.panel { padding:0 12px 12px; }
+.camera-card {
+  border:1px solid var(--line); border-radius:30px; overflow:hidden;
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+}
+.camera-head {
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:12px 14px; border-bottom:1px solid var(--line); background:rgba(255,255,255,.04);
+}
+.profile { display:flex; align-items:center; gap:10px; min-width:0; }
+.avatar {
+  width:52px; height:52px; border-radius:50%; padding:2px; flex:0 0 auto;
+  background:linear-gradient(135deg, var(--yellow), var(--pink));
+}
+.avatar-inner {
+  width:100%; height:100%; border-radius:50%; display:grid; place-items:center;
+  background:#10111f; border:1px solid rgba(255,255,255,.08); font-size:24px;
+}
+.profile-text strong { display:block; font-size:16px; line-height:1.15; word-break:keep-all; }
+.profile-text small {
+  display:block; margin-top:3px; color:var(--muted); font-size:12px; line-height:1.35; word-break:keep-all;
+}
+.status-pill {
+  padding:8px 12px; border-radius:999px; white-space:nowrap; flex:0 0 auto;
+  font-size:12px; font-weight:900; color:#ffdced;
+  background:linear-gradient(90deg, rgba(255,92,168,.18), rgba(138,125,255,.16));
+  border:1px solid rgba(255,255,255,.08);
+}
+.camera-area { position:relative; aspect-ratio:4/5; background:#05060e; overflow:hidden; }
+video, .photo-preview { display:block; width:100%; height:100%; object-fit:cover; background:#000; }
+.photo-preview { display:none; }
+.camera-overlay {
+  position:absolute; inset:0; pointer-events:none; display:flex; flex-direction:column; justify-content:space-between;
+  padding:14px; background:linear-gradient(180deg, rgba(0,0,0,.28), transparent 30%, transparent 66%, rgba(0,0,0,.42));
+}
+.overlay-top { display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
+.stack { display:flex; flex-direction:column; gap:8px; }
+.pill {
+  align-self:flex-start; padding:8px 11px; border-radius:999px; border:1px solid rgba(255,255,255,.12);
+  background:rgba(12,13,22,.52); color:#fff; font-size:12px; font-weight:900; backdrop-filter:blur(12px);
+}
+.chip-row { display:flex; gap:8px; flex-wrap:wrap; }
+.chip {
+  padding:6px 9px; border-radius:999px; background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.12); font-size:12px; font-weight:900;
+}
+.controls {
+  padding:14px; display:grid; grid-template-columns:1fr; gap:10px; background:rgba(255,255,255,.03);
+  border-top:1px solid var(--line);
+}
+button, input {
+  appearance:none; width:100%; border-radius:20px; padding:16px 18px; font-size:16px; font-weight:900;
+  color:var(--text); border:1px solid var(--line); outline:none;
+  background:linear-gradient(180deg, rgba(255,255,255,.11), rgba(255,255,255,.06));
+}
+button { cursor:pointer; }
+button.primary {
+  color:#2a1708; background:linear-gradient(180deg, #ffe28b, #ffb85d);
+  box-shadow:0 14px 30px rgba(255,184,93,.24);
+}
+button:disabled { opacity:.45; cursor:not-allowed; box-shadow:none; }
+input { text-align:center; }
+input::placeholder { color:rgba(245,247,255,.58); }
+.result {
+  margin:0 12px 16px; border:1px solid var(--line); border-radius:30px; overflow:hidden;
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+}
+.result-head { padding:16px 18px 8px; text-align:center; }
+.result-head strong { display:block; font-size:20px; letter-spacing:-.03em; }
+.result-head small { display:block; margin-top:6px; color:var(--muted); font-size:14px; line-height:1.55; }
+.result-wrap {
+  padding:18px; display:flex; justify-content:center;
+  background:radial-gradient(circle at 50% 0%, rgba(255,255,255,.05), transparent 30%), linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+}
+.final-image-card {
+  width:min(100%, 620px); min-height:360px; border-radius:30px; overflow:hidden;
+  background:linear-gradient(180deg, #151729, #10111d); border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 18px 40px rgba(0,0,0,.26); position:relative;
+  display:flex; align-items:center; justify-content:center;
+}
+.final-image-card img { display:block; width:100%; height:auto; background:#0f1220; }
+.result-placeholder {
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:24px;
+  color:var(--muted); font-size:16px; font-weight:800; line-height:1.6;
+  background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+}
+.result-actions { padding:0 18px 18px; }
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="topbar">
+    <div class="icon-btn" aria-hidden="true">📷</div>
+    <div class="brand">
+      <span class="mini">cute decorated pet photo</span>
+      <h1>애완동물DM</h1>
+    </div>
+    <div class="icon-btn" aria-hidden="true">💬</div>
+  </header>
+
+  <section class="hero">
+    <h2>아기자기하게 꾸민 <strong>한 장의 사진.</strong></h2>
+    
+  </section>
+
+  <section class="stories-wrap">
+    <div id="stories" class="stories" aria-label="동물 빠른 선택"></div>
+  </section>
+
+  <select id="petType" aria-label="동물 종류 선택" style="display:none"></select>
+
+  <section class="panel">
+    <div class="camera-card">
+      <div class="camera-head">
+        <div class="profile">
+          <div class="avatar"><div id="mainAvatar" class="avatar-inner">🐶</div></div>
+          <div class="profile-text">
+            <strong id="selectedAnimalLabel">강아지</strong>
+            <small id="selectedAnimalSub">산책과 간식에 진심</small>
+          </div>
+        </div>
+        <div id="statusBadge" class="status-pill">대기 중</div>
+      </div>
+
+      <div class="camera-area">
+        <video id="preview" playsinline autoplay muted></video>
+        <img id="photoPreview" class="photo-preview" alt="촬영한 사진 미리보기" />
+        <div class="camera-overlay">
+          <div class="overlay-top">
+            <div class="stack">
+              <div id="modeBadge" class="pill">🐶 사진 준비</div>
+              <div class="pill">인스타 감성</div>
+            </div>
+            <div class="pill">애완동물DM</div>
+          </div>
+          <div class="chip-row">
+            <span id="animalChip" class="chip">강아지</span>
+            <span class="chip">말주머니</span>
+            <span class="chip">핑크 무드</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="startCameraBtn" class="primary">카메라 켜기</button>
+        <button id="captureBtn" disabled>사진 찍기</button>
+        <button id="retakeBtn" disabled>다시 찍기</button>
+        <input id="userHandle" type="text" maxlength="24" placeholder="@아이디 입력" value="@hosukgun" aria-label="결과물에 넣을 아이디" />
+      </div>
+    </div>
+  </section>
+
+  <section class="result">
+    <div class="result-head">
+      <strong>완성 결과 이미지</strong>
+      <small></small>
+    </div>
+    <div class="result-wrap">
+      <div class="final-image-card">
+        <img id="resultImage" alt="완성 결과 이미지" />
+        <div id="resultPlaceholder" class="result-placeholder">사진을 찍으면<br>꾸며진 결과 이미지가 여기에 표시됩니다</div>
+      </div>
+    </div>
+    <div class="result-actions">
+      <button id="downloadBtn" disabled>다운로드</button>
+    </div>
+  </section>
+</main>
+
+<canvas id="captureCanvas" style="display:none"></canvas>
+<canvas id="exportCanvas" style="display:none"></canvas>
+
+<script>
+const PETS = {"dog": {"label": "강아지", "emoji": "🐶", "group": "친숙한 반려동물", "desc": "산책과 간식에 진심", "phrases": ["산책 갈 준비는 늘 되어 있어요.", "꼬리 흔들기로 이미 답장 보냈어요.", "간식 얘기면 바로 인터뷰 가능합니다."]}, "cat": {"label": "고양이", "emoji": "🐱", "group": "친숙한 반려동물", "desc": "도도하지만 은근 다정", "phrases": ["오늘도 저를 잘 모시고 있군요.", "지금은 쓰다듬기 4초까지만 허용합니다.", "집사는 합격. 서비스는 조금 더 개선하세요."]}, "hamster": {"label": "햄스터", "emoji": "🐹", "group": "친숙한 반려동물", "desc": "볼주머니 비즈니스 중", "phrases": ["제 볼은 저장공간이 아니라 자존심입니다.", "해바라기씨 선입금 후 인터뷰하겠습니다.", "지금 뛰는 건 운동이 아니라 중요한 업무예요."]}, "rabbit": {"label": "토끼", "emoji": "🐰", "group": "친숙한 반려동물", "desc": "깡총 에너지 가득", "phrases": ["당근 없이는 답변도 없습니다.", "깡총거림은 감정 표현이자 예술입니다.", "사진보다 실물이 더 말랑해요."]}, "parrot": {"label": "앵무새", "emoji": "🦜", "group": "친숙한 반려동물", "desc": "말 많은 스타", "phrases": ["오늘도 제가 집안 여론을 담당합니다.", "방금 들은 말은 내일 다시 따라 할 예정입니다.", "예쁜 말도 하고 웃긴 말도 하고 간식도 먹습니다."]}, "turtle": {"label": "거북이", "emoji": "🐢", "group": "친숙한 반려동물", "desc": "느긋하지만 중심 있음", "phrases": ["천천히 가도 귀여움은 먼저 도착합니다.", "급한 건 사람들 사정이고 나는 평온해요.", "한 걸음 한 걸음이 다 브이로그예요."]}, "hedgehog": {"label": "고슴도치", "emoji": "🦔", "group": "친숙한 반려동물", "desc": "뾰족하지만 사랑스러움", "phrases": ["겉은 뾰족, 속은 간식 생각뿐.", "가까이 오되 예의는 지켜 주세요.", "조심히 예뻐해 주세요. 저는 섬세합니다."]}, "ferret": {"label": "페럿", "emoji": "🦦", "group": "친숙한 반려동물", "desc": "장난기 폭발 탐험가", "phrases": ["집 안의 모든 틈은 제 후보지입니다.", "방금 숨은 건 마술이 아니라 취미예요.", "귀엽고 길고 이상하게 빠릅니다."]}, "desertscorpion": {"label": "건계전갈", "emoji": "🦂", "group": "특이한 친구들", "desc": "사막 감성의 카리스마", "phrases": ["나는 조용하지만 존재감은 크게 남깁니다.", "집게 든 건 위협이 아니라 포즈입니다.", "오늘도 사막의 CEO처럼 차분합니다."]}, "forestscorpion": {"label": "습계전갈", "emoji": "🦂", "group": "특이한 친구들", "desc": "습도 좋아하는 묵직함", "phrases": ["습도만 맞으면 기분도 같이 올라갑니다.", "어두운 곳에서도 존재감은 선명합니다.", "오늘도 묵직하게 무드 담당 중입니다."]}, "centipede": {"label": "지네", "emoji": "🪱", "group": "특이한 친구들", "desc": "다리 많은 초고속 존재감", "phrases": ["다리가 많다고 바쁜 건 아니고 원래 빠른 겁니다.", "조용히 있는데도 자꾸 눈이 가죠?", "내 움직임은 스피드의 미학입니다."]}, "crayfish": {"label": "가재", "emoji": "🦞", "group": "특이한 친구들", "desc": "집게발 자신감", "phrases": ["양손에 집게가 있으면 자신감도 두 배입니다.", "가끔 뒤로 가는 건 전략적 후퇴예요.", "오늘 기분은 수초 뒤집기 좋은 날입니다."]}, "shrimp": {"label": "새우", "emoji": "🦐", "group": "특이한 친구들", "desc": "작지만 수조 스타", "phrases": ["작다고 안 보인다고 생각하면 오산입니다.", "내가 움직이면 물도 귀여워 보입니다.", "작고 빠르고 야무진 친구입니다."]}, "crestedgecko": {"label": "크레스티드 게코", "emoji": "🦎", "group": "특이한 친구들", "desc": "유리벽 타는 야행성 모델", "phrases": ["벽 타는 건 재능이고 귀여움은 기본 사양.", "오늘도 유리벽 위에서 모델 워킹 중입니다.", "속눈썹처럼 보이는 포인트가 킬링이에요."]}, "beardeddragon": {"label": "비어디드래곤", "emoji": "🐉", "group": "특이한 친구들", "desc": "햇볕 쬐는 왕자님", "phrases": ["웜밍존이 곧 행복존입니다.", "오늘도 돌 위에서 왕처럼 앉아 있는 중.", "햇빛만 좋으면 오늘 하루 성공입니다."]}, "snake": {"label": "뱀", "emoji": "🐍", "group": "특이한 친구들", "desc": "매끈하고 차분한 무드", "phrases": ["조용한 게 무서운 게 아니라 우아한 거예요.", "혀를 낼름한 건 체크입니다.", "다리 대신 분위기로 이동합니다."]}, "frog": {"label": "개구리", "emoji": "🐸", "group": "특이한 친구들", "desc": "통통 튀는 촉촉함", "phrases": ["오늘 점프감 아주 좋습니다.", "가끔 멍한 표정은 철학 중인 겁니다.", "동글동글한 표정으로 세상을 봅니다."]}, "tarantula": {"label": "타란툴라", "emoji": "🕷️", "group": "특이한 친구들", "desc": "묵직한 무드의 스타", "phrases": ["나는 말이 없지만 팬은 많습니다.", "오늘도 한 발 한 발 영화처럼 등장합니다.", "정적인데 화면 장악력은 셉니다."]}, "stagbeetle": {"label": "사슴벌레", "emoji": "🪲", "group": "곤충 친구들", "desc": "집게 멋이 살아있는 곤충 스타", "phrases": ["큰 턱은 자랑이고 오늘도 컨디션은 좋습니다.", "나무 위가 내 런웨이입니다.", "지금 포즈 좋으니 바로 찍으세요."]}, "rhinobeetle": {"label": "장수풍뎅이", "emoji": "🪲", "group": "곤충 친구들", "desc": "당당한 뿔과 묵직한 매력", "phrases": ["뿔은 장식이 아니라 자부심입니다.", "젤리 보이면 텐션이 바로 올라갑니다.", "느린 듯 강한 스타일, 그게 바로 나예요."]}, "mantis": {"label": "사마귀", "emoji": "🦗", "group": "곤충 친구들", "desc": "기도 자세의 집중 장인", "phrases": ["기도하는 게 아니라 집중 중입니다.", "고개 갸웃한 건 관심 있다는 뜻이에요.", "자세 하나로 분위기를 바꾸는 타입입니다."]}, "goldfish": {"label": "금붕어", "emoji": "🐠", "group": "담수어", "desc": "둥실둥실 수조 감성", "phrases": ["먹이 시간엔 누구보다 빠릅니다.", "오늘도 지느러미에 모든 감정을 담았어요.", "작은 수조도 내겐 무대입니다."]}, "betta": {"label": "베타", "emoji": "🐟", "group": "담수어", "desc": "컬러감 강한 패션왕", "phrases": ["지느러미 펼치면 거의 런웨이입니다.", "내 색감은 필터 없이도 충분합니다.", "작은 수조? 아니, 개인 무대입니다."]}, "guppy": {"label": "구피", "emoji": "🐠", "group": "담수어", "desc": "반짝반짝 군무 담당", "phrases": ["오늘도 꼬리로 화려하게 인사드립니다.", "작아도 단체샷 존재감은 충분합니다.", "수조를 더 생기 있게 만드는 건 결국 우리예요."]}, "koi": {"label": "코이", "emoji": "🐟", "group": "담수어", "desc": "우아한 연못 귀족", "phrases": ["오늘도 우아하게 한 바퀴 돌겠습니다.", "내 패턴은 연못의 예술입니다.", "느긋하게 움직여도 시선은 다 모입니다."]}, "axolotl": {"label": "아홀로틀", "emoji": "🫧", "group": "담수어", "desc": "미소가 기본 장착", "phrases": ["내 표정은 늘 웃는 것처럼 보이죠.", "오늘도 물속에서 몽글몽글 귀엽습니다.", "나를 보면 기분이 약간 말랑해져요."]}, "pleco": {"label": "플레코", "emoji": "🐡", "group": "담수어", "desc": "유리 청소의 장인", "phrases": ["벽 타는 건 기본이고 청소도 제 담당입니다.", "조용히 붙어 있어도 일은 하고 있습니다.", "오늘도 수조 미관을 책임지는 중입니다."]}, "clownfish": {"label": "클라운피시", "emoji": "🐠", "group": "해수어", "desc": "주황빛 바다 스타", "phrases": ["산호 사이가 내 런웨이입니다.", "오늘도 바다 감성 제대로 내는 중입니다.", "작아도 시선은 확실히 가져갑니다."]}, "bluetang": {"label": "블루탱", "emoji": "🐟", "group": "해수어", "desc": "푸른 바다 무드 담당", "phrases": ["푸른 색감은 제가 담당합니다.", "오늘도 바다 느낌 제대로 내는 중이에요.", "헤엄은 부드럽고 존재감은 선명합니다."]}, "mandarinfish": {"label": "만다린피시", "emoji": "🐠", "group": "해수어", "desc": "패턴 부자 화려함", "phrases": ["패턴으로는 오늘도 최상급입니다.", "자세히 보면 볼수록 더 화려합니다.", "작은 몸에 컬러를 너무 많이 담았어요."]}, "goby": {"label": "고비", "emoji": "🐟", "group": "해수어", "desc": "귀여운 바닥 탐험가", "phrases": ["바닥 근처가 제 메인 무대입니다.", "작고 조용하지만 꽤 야무집니다.", "오늘도 모래 위를 귀엽게 순찰 중입니다."]}, "human": {"label": "인간(?)", "emoji": "🧑", "group": "마지막 손님", "desc": "애완동물들 틈에 낀 특별 게스트", "phrases": ["오늘은 제가 오히려 관찰당하는 느낌인데요?", "카메라를 켰지만 가장 어색한 건 인간입니다.", "애완동물DM 마지막 칸은 결국 인간 차지였군요."]}};
+const ORDER = ["dog", "cat", "hamster", "rabbit", "parrot", "turtle", "hedgehog", "ferret", "desertscorpion", "forestscorpion", "centipede", "crayfish", "shrimp", "crestedgecko", "beardeddragon", "snake", "frog", "tarantula", "stagbeetle", "rhinobeetle", "mantis", "goldfish", "betta", "guppy", "koi", "axolotl", "pleco", "clownfish", "bluetang", "mandarinfish", "goby", "human"];
+const GROUPS = ["친숙한 반려동물", "특이한 친구들", "곤충 친구들", "담수어", "해수어", "마지막 손님"];
+
+const stories = document.getElementById("stories");
+const petType = document.getElementById("petType");
+const preview = document.getElementById("preview");
+const photoPreview = document.getElementById("photoPreview");
+const startCameraBtn = document.getElementById("startCameraBtn");
+const captureBtn = document.getElementById("captureBtn");
+const retakeBtn = document.getElementById("retakeBtn");
+const downloadBtn = document.getElementById("downloadBtn");
+const userHandle = document.getElementById("userHandle");
+
+const selectedAnimalLabel = document.getElementById("selectedAnimalLabel");
+const selectedAnimalSub = document.getElementById("selectedAnimalSub");
+const mainAvatar = document.getElementById("mainAvatar");
+const statusBadge = document.getElementById("statusBadge");
+const modeBadge = document.getElementById("modeBadge");
+const animalChip = document.getElementById("animalChip");
+
+const resultImage = document.getElementById("resultImage");
+const resultPlaceholder = document.getElementById("resultPlaceholder");
+
+const captureCanvas = document.getElementById("captureCanvas");
+const exportCanvas = document.getElementById("exportCanvas");
+
+let stream = null;
+let capturedDataUrl = "";
+let exportDataUrl = "";
+let exportBlob = null;
+let exportObjectUrl = "";
+let lastQuote = "";
+
+function buildSelect() {
+  petType.innerHTML = "";
+  GROUPS.forEach(group => {
+    const og = document.createElement("optgroup");
+    og.label = group;
+    ORDER.forEach(key => {
+      const pet = PETS[key];
+      if (pet.group !== group) return;
+      const opt = document.createElement("option");
+      opt.value = key;
+      opt.textContent = pet.label;
+      og.appendChild(opt);
+    });
+    petType.appendChild(og);
+  });
+  petType.value = "dog";
+}
+
+function renderStories() {
+  stories.innerHTML = "";
+  ORDER.forEach(key => {
+    const pet = PETS[key];
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "story";
+    btn.innerHTML = `
+      <div class="story-card">
+        <div class="story-ring ${petType.value === key ? "active" : ""}">
+          <div class="story-core">${pet.emoji}</div>
+        </div>
+        <span class="story-label">${pet.label}</span>
+        <span class="story-sub">${pet.group}</span>
+      </div>
+    `;
+    btn.addEventListener("click", () => {
+      petType.value = key;
+      updatePetUI();
+    });
+    stories.appendChild(btn);
+  });
+}
+
+function currentKey() {
+  return PETS[petType.value] ? petType.value : "dog";
+}
+
+function currentPet() {
+  return PETS[currentKey()];
+}
+
+function pickRandom(list) {
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+function safeHandle() {
+  const raw = (userHandle.value || "").trim();
+  if (!raw) return "@hosukgun";
+  return raw.startsWith("@") ? raw : "@" + raw;
+}
+
+function pseudoLikeCount() {
+  const seed = [...(currentKey() + "|" + (lastQuote || "") + "|" + safeHandle())]
+    .reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+  return (1300 + (seed * 37 % 8600)).toLocaleString("ko-KR");
+}
+
+function updatePetUI() {
+  const pet = currentPet();
+  selectedAnimalLabel.textContent = pet.label;
+  selectedAnimalSub.textContent = pet.desc;
+  mainAvatar.textContent = pet.emoji;
+  modeBadge.textContent = `${pet.emoji} 사진 준비`;
+  animalChip.textContent = pet.label;
+  renderStories();
+}
+
+async function startCamera() {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    alert("이 브라우저는 카메라 접근을 지원하지 않습니다.");
+    return;
+  }
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1080 },
+        height: { ideal: 1440 }
+      },
+      audio: false
+    });
+    preview.srcObject = stream;
+    startCameraBtn.disabled = true;
+    captureBtn.disabled = false;
+    statusBadge.textContent = "카메라 연결됨";
+  } catch (err) {
+    console.error(err);
+    alert("카메라 권한을 허용해 주세요.");
+  }
+}
+
+function roundRect(ctx, x, y, width, height, radius) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + width, y, x + width, y + height, r);
+  ctx.arcTo(x + width, y + height, x, y + height, r);
+  ctx.arcTo(x, y + height, x, y, r);
+  ctx.arcTo(x, y, x + width, y, r);
+  ctx.closePath();
+}
+
+function wrapKoreanText(ctx, text, x, y, maxWidth, lineHeight) {
+  let line = "";
+  let lines = [];
+  for (const ch of text) {
+    const testLine = line + ch;
+    if (ctx.measureText(testLine).width > maxWidth && line) {
+      lines.push(line);
+      line = ch;
+    } else {
+      line = testLine;
+    }
+  }
+  if (line) lines.push(line);
+  let currentY = y;
+  lines.forEach(l => {
+    ctx.fillText(l, x, currentY);
+    currentY += lineHeight;
+  });
+  return currentY;
+}
+
+function fitImageToRect(srcW, srcH, dstW, dstH) {
+  const srcRatio = srcW / srcH;
+  const dstRatio = dstW / dstH;
+  let sx = 0, sy = 0, sw = srcW, sh = srcH;
+  if (srcRatio > dstRatio) {
+    sw = srcH * dstRatio;
+    sx = (srcW - sw) / 2;
+  } else {
+    sh = srcW / dstRatio;
+    sy = (srcH - sh) / 2;
+  }
+  return { sx, sy, sw, sh };
+}
+
+
+function buildExportCard() {
+  if (!capturedDataUrl) return Promise.resolve(false);
+
+  downloadBtn.disabled = true;
+  downloadBtn.textContent = "이미지 만드는 중...";
+
+  return new Promise((resolve) => {
+    const pet = currentPet();
+    const handle = safeHandle();
+    const photo = new Image();
+
+    photo.onload = () => {
+      const canvas = exportCanvas;
+      const ctx = canvas.getContext("2d");
+
+      canvas.width = 1080;
+      canvas.height = 1350;
+
+      const wall = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      wall.addColorStop(0, "#171622");
+      wall.addColorStop(.52, "#11111a");
+      wall.addColorStop(1, "#0b0b12");
+      ctx.fillStyle = wall;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      let glow = ctx.createRadialGradient(180, 120, 20, 180, 120, 280);
+      glow.addColorStop(0, "rgba(255,191,120,.12)");
+      glow.addColorStop(1, "rgba(255,191,120,0)");
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      glow = ctx.createRadialGradient(920, 220, 20, 920, 220, 260);
+      glow.addColorStop(0, "rgba(255,94,170,.10)");
+      glow.addColorStop(1, "rgba(255,94,170,0)");
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const spotlight = ctx.createRadialGradient(540, 520, 80, 540, 520, 620);
+      spotlight.addColorStop(0, "rgba(255,255,240,.10)");
+      spotlight.addColorStop(1, "rgba(255,255,240,0)");
+      ctx.fillStyle = spotlight;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,.42)";
+      ctx.shadowBlur = 46;
+      ctx.shadowOffsetY = 22;
+      ctx.fillStyle = "rgba(0,0,0,.2)";
+      roundRect(ctx, 138, 128, 804, 980, 36);
+      ctx.fill();
+      ctx.restore();
+
+      const frameX = 150, frameY = 110, frameW = 780, frameH = 960;
+      const gold = ctx.createLinearGradient(frameX, frameY, frameX + frameW, frameY + frameH);
+      gold.addColorStop(0, "#7b4e1c");
+      gold.addColorStop(.18, "#f0c77a");
+      gold.addColorStop(.35, "#9f6a27");
+      gold.addColorStop(.55, "#f7dda1");
+      gold.addColorStop(.76, "#8d5a20");
+      gold.addColorStop(1, "#e4bd73");
+      ctx.fillStyle = gold;
+      roundRect(ctx, frameX, frameY, frameW, frameH, 34);
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(255,250,220,.35)";
+      ctx.lineWidth = 6;
+      roundRect(ctx, frameX + 12, frameY + 12, frameW - 24, frameH - 24, 28);
+      ctx.stroke();
+
+      ctx.strokeStyle = "rgba(90,50,10,.35)";
+      ctx.lineWidth = 6;
+      roundRect(ctx, frameX + 24, frameY + 24, frameW - 48, frameH - 48, 24);
+      ctx.stroke();
+
+      const matX = frameX + 48, matY = frameY + 48, matW = frameW - 96, matH = frameH - 96;
+      const matGrad = ctx.createLinearGradient(matX, matY, matX, matY + matH);
+      matGrad.addColorStop(0, "#f4eee4");
+      matGrad.addColorStop(1, "#ddd4c6");
+      ctx.fillStyle = matGrad;
+      roundRect(ctx, matX, matY, matW, matH, 20);
+      ctx.fill();
+
+      const photoX = matX + 34, photoY = matY + 34, photoW = matW - 68, photoH = 620;
+      ctx.save();
+      roundRect(ctx, photoX, photoY, photoW, photoH, 12);
+      ctx.clip();
+
+      const crop = fitImageToRect(photo.width, photo.height, photoW, photoH);
+      ctx.drawImage(photo, crop.sx, crop.sy, crop.sw, crop.sh, photoX, photoY, photoW, photoH);
+
+      const tint = ctx.createLinearGradient(photoX, photoY, photoX, photoY + photoH);
+      tint.addColorStop(0, "rgba(255,232,196,.12)");
+      tint.addColorStop(.55, "rgba(255,170,210,.06)");
+      tint.addColorStop(1, "rgba(70,65,120,.18)");
+      ctx.fillStyle = tint;
+      ctx.fillRect(photoX, photoY, photoW, photoH);
+
+      const vignette = ctx.createRadialGradient(photoX + photoW/2, photoY + photoH/2, 90, photoX + photoW/2, photoY + photoH/2, photoW*.74);
+      vignette.addColorStop(0, "rgba(0,0,0,0)");
+      vignette.addColorStop(1, "rgba(0,0,0,.20)");
+      ctx.fillStyle = vignette;
+      ctx.fillRect(photoX, photoY, photoW, photoH);
+
+      ctx.restore();
+
+      ctx.fillStyle = "rgba(15,12,10,.28)";
+      roundRect(ctx, photoX + photoW - 226, photoY + photoH - 58, 196, 36, 18);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,.18)";
+      ctx.lineWidth = 1.3;
+      roundRect(ctx, photoX + photoW - 226, photoY + photoH - 58, 196, 36, 18);
+      ctx.stroke();
+      ctx.fillStyle = "rgba(255,255,255,.96)";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = "900 21px -apple-system, Apple SD Gothic Neo, Noto Sans KR, sans-serif";
+      ctx.fillText(handle, photoX + photoW - 128, photoY + photoH - 39);
+
+      const bubbleText = lastQuote;
+      const bubbleW = photoW - 90;
+      const bubbleH = 130;
+      const bubbleX = photoX + 34;
+      const bubbleY = photoY + photoH - 188;
+
+      ctx.fillStyle = "rgba(255,255,255,.95)";
+      roundRect(ctx, bubbleX, bubbleY, bubbleW, bubbleH, 28);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(bubbleX + 82, bubbleY + bubbleH);
+      ctx.lineTo(bubbleX + 56, bubbleY + bubbleH + 30);
+      ctx.lineTo(bubbleX + 124, bubbleY + bubbleH - 10);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#211924";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "alphabetic";
+      ctx.font = "900 38px -apple-system, Apple SD Gothic Neo, Noto Sans KR, sans-serif";
+      wrapKoreanText(ctx, `“${bubbleText}”`, bubbleX + 28, bubbleY + 50, bubbleW - 56, 46);
+
+      ctx.fillStyle = "#7d6258";
+      ctx.font = "800 24px -apple-system, Apple SD Gothic Neo, Noto Sans KR, sans-serif";
+      ctx.fillText(`${pet.emoji} ${pet.label}`, matX + 34, matY + 730);
+
+      ctx.fillStyle = "#9d8367";
+      ctx.font = "800 18px -apple-system, Apple SD Gothic Neo, Noto Sans KR, sans-serif";
+      ctx.fillText("PETDM GALLERY FRAME", matX + matW - 260, matY + 730);
+
+      const plaqueX = 300, plaqueY = 1120, plaqueW = 480, plaqueH = 88;
+      const plaqueGrad = ctx.createLinearGradient(plaqueX, plaqueY, plaqueX, plaqueY + plaqueH);
+      plaqueGrad.addColorStop(0, "#9a7447");
+      plaqueGrad.addColorStop(1, "#6f4e2f");
+      ctx.fillStyle = plaqueGrad;
+      roundRect(ctx, plaqueX, plaqueY, plaqueW, plaqueH, 18);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,230,190,.25)";
+      ctx.lineWidth = 2;
+      roundRect(ctx, plaqueX + 4, plaqueY + 4, plaqueW - 8, plaqueH - 8, 14);
+      ctx.stroke();
+
+      ctx.fillStyle = "#fff6e5";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = "900 28px -apple-system, Apple SD Gothic Neo, Noto Sans KR, sans-serif";
+      ctx.fillText(`${pet.label}의 한마디`, plaqueX + plaqueW / 2, plaqueY + plaqueH / 2);
+
+      ctx.textAlign = "center";
+      ctx.textBaseline = "alphabetic";
+      ctx.fillStyle = "rgba(240,242,255,.92)";
+      ctx.font = "700 22px -apple-system, Apple SD Gothic Neo, Noto Sans KR, sans-serif";
+      ctx.fillText(`좋아요 ${pseudoLikeCount()}개 · ${handle}`, 540, 1258);
+
+      ctx.fillStyle = "rgba(156,168,214,.96)";
+      ctx.font = "600 18px -apple-system, Apple SD Gothic Neo, Noto Sans KR, sans-serif";
+      ctx.fillText("#애완동물DM   #액자테마   #말주머니", 540, 1294);
+
+      exportDataUrl = canvas.toDataURL("image/png");
+      resultImage.src = exportDataUrl;
+      resultPlaceholder.style.display = "none";
+
+      if (exportObjectUrl) {
+        URL.revokeObjectURL(exportObjectUrl);
+        exportObjectUrl = "";
+      }
+
+      const finishWithBlob = (blob) => {
+        exportBlob = blob;
+        downloadBtn.disabled = false;
+        downloadBtn.textContent = "다운로드";
+        if (blob) {
+          exportObjectUrl = URL.createObjectURL(blob);
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      };
+
+      if (canvas.toBlob) {
+        canvas.toBlob((blob) => finishWithBlob(blob), "image/png");
+      } else {
+        try {
+          const byteString = atob(exportDataUrl.split(",")[1]);
+          const mimeString = exportDataUrl.split(",")[0].split(":")[1].split(";")[0];
+          const ab = new ArrayBuffer(byteString.length);
+          const ia = new Uint8Array(ab);
+          for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+          finishWithBlob(new Blob([ab], { type: mimeString }));
+        } catch (e) {
+          console.error(e);
+          finishWithBlob(null);
+        }
+      }
+    };
+
+    photo.onerror = () => {
+      downloadBtn.disabled = true;
+      downloadBtn.textContent = "다운로드";
+      resolve(false);
+    };
+
+    photo.src = capturedDataUrl;
+  });
+}
+
+
+function capturePhoto() {
+  if (!stream) {
+    alert("먼저 카메라를 켜 주세요.");
+    return;
+  }
+  const vw = preview.videoWidth;
+  const vh = preview.videoHeight;
+  if (!vw || !vh) {
+    alert("카메라 화면이 아직 준비되지 않았습니다.");
+    return;
+  }
+
+  const canvas = captureCanvas;
+  canvas.width = vw;
+  canvas.height = vh;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(preview, 0, 0, vw, vh);
+
+  capturedDataUrl = canvas.toDataURL("image/jpeg", 0.95);
+  photoPreview.src = capturedDataUrl;
+  photoPreview.style.display = "block";
+  preview.style.display = "none";
+
+  const pet = currentPet();
+  lastQuote = pickRandom(pet.phrases);
+
+  statusBadge.textContent = "사진 완성";
+  captureBtn.disabled = true;
+  retakeBtn.disabled = false;
+  downloadBtn.disabled = true;
+  downloadBtn.textContent = "이미지 만드는 중...";
+
+  buildExportCard();
+}
+
+function retakePhoto() {
+  capturedDataUrl = "";
+  exportDataUrl = "";
+  exportBlob = null;
+  if (exportObjectUrl) {
+    URL.revokeObjectURL(exportObjectUrl);
+    exportObjectUrl = "";
+  }
+  resultImage.removeAttribute("src");
+  resultPlaceholder.style.display = "flex";
+  photoPreview.style.display = "none";
+  preview.style.display = "block";
+  statusBadge.textContent = stream ? "카메라 연결됨" : "대기 중";
+  captureBtn.disabled = !stream;
+  retakeBtn.disabled = true;
+  downloadBtn.disabled = true;
+  downloadBtn.textContent = "다운로드";
+  updatePetUI();
+}
+
+async function downloadResult() {
+  if (!exportDataUrl) {
+    alert("먼저 사진을 찍어 주세요.");
+    return;
+  }
+
+  const fileName = `petdm-cute-${Date.now()}.png`;
+
+  if (exportBlob) {
+    try {
+      const file = new File([exportBlob], fileName, {type:"image/png"});
+      if (navigator.share && navigator.canShare && navigator.canShare({files:[file]})) {
+        await navigator.share({
+          files:[file],
+          title:"애완동물DM 꾸밈 사진",
+          text:"애완동물DM 꾸밈 사진"
+        });
+        return;
+      }
+    } catch (err) {
+      console.log("파일 공유 실패, fallback 사용", err);
+    }
+  }
+
+  try {
+    if (exportObjectUrl) {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIOS) {
+        const opened = window.open(exportObjectUrl, "_blank");
+        if (!opened) window.location.href = exportObjectUrl;
+        return;
+      }
+      const a = document.createElement("a");
+      a.href = exportObjectUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      return;
+    }
+  } catch (err) {
+    console.log("blob url 다운로드 실패", err);
+  }
+
+  try {
+    const a = document.createElement("a");
+    a.href = exportDataUrl;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch (err) {
+    console.error(err);
+    alert("저장에 실패했습니다. 결과 이미지를 길게 눌러 저장해 주세요.");
+  }
+}
+
+startCameraBtn.addEventListener("click", startCamera);
+captureBtn.addEventListener("click", capturePhoto);
+retakeBtn.addEventListener("click", retakePhoto);
+downloadBtn.addEventListener("click", downloadResult);
+
+petType.addEventListener("change", () => {
+  updatePetUI();
+  if (capturedDataUrl) {
+    lastQuote = pickRandom(currentPet().phrases);
+    buildExportCard();
+  }
+});
+
+userHandle.addEventListener("input", () => {
+  if (capturedDataUrl) {
+    buildExportCard();
+  }
+});
+
+buildSelect();
+updatePetUI();
+resultPlaceholder.style.display = "flex";
+</script>
+</body>
+</html>
